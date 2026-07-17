@@ -110,16 +110,61 @@
         .color-swatch.active-color { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 15px currentColor; }
         
         .model-container { position: relative; width: 400px; max-width: 100%; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)); }
+        
+        /* === ANIMACIONES CSS DEL MODELO === */
+        
+        /* Animación del Fondo (Aura Mágica) */
+        @keyframes aura-pulse {
+            0% { transform: scale(0.9); opacity: 0.4; filter: blur(30px) hue-rotate(0deg); }
+            50% { transform: scale(1.1); opacity: 0.8; filter: blur(45px) hue-rotate(15deg); }
+            100% { transform: scale(0.9); opacity: 0.4; filter: blur(30px) hue-rotate(0deg); }
+        }
+        #mk-bg {
+            transform-origin: 250px 275px; /* Centro del círculo */
+            animation: aura-pulse 6s ease-in-out infinite;
+        }
+
+        /* Animación de la Respiración (Ropa) */
+        @keyframes breathe-clothes {
+            0%, 100% { transform: scaleY(1) translateY(0); }
+            50% { transform: scaleY(1.02) translateY(-3px); }
+        }
+        #mk-clothes {
+            transform-origin: 250px 420px; /* A la altura de los hombros */
+            animation: breathe-clothes 3.5s ease-in-out infinite;
+        }
+
+        /* Animación del Cabello */
+        @keyframes hair-breeze-back {
+            0%, 100% { transform: rotate(0deg) skewX(0deg); }
+            50% { transform: rotate(1.5deg) skewX(2deg); }
+        }
+        @keyframes hair-breeze-front {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-1.5deg); }
+        }
+        #mk-hair-back {
+            transform-origin: 250px 150px; /* Anclado a la coronilla */
+            animation: hair-breeze-back 5s ease-in-out infinite;
+        }
+        #mk-hair-front {
+            transform-origin: 250px 150px; /* Anclado a la coronilla */
+            animation: hair-breeze-front 5.5s ease-in-out infinite;
+        }
+
+        /* Animación de Pestañeo */
         @keyframes blink { 0%, 94%, 98%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
         .eyes { transform-origin: center 40%; animation: blink 5s infinite; }
+
         .layer-blush { mix-blend-mode: multiply; filter: blur(12px); opacity: 0; transition: 0.4s; }
         .layer-shadow { mix-blend-mode: multiply; filter: blur(4px); opacity: 0; transition: 0.4s; }
         .layer-lips { mix-blend-mode: color-burn; opacity: 0; transition: 0.4s; }
         .layer-eyeliner, .layer-lashes { transition: stroke 0.4s, opacity 0.4s; opacity: 0; }
         .layer-cloth { transition: fill 0.4s; }
         .layer-acc { transition: stroke 0.4s; }
+        .layer-bg, .layer-hair { transition: fill 0.5s ease; }
 
-        /* --- SECCIÓN MÚSICA (NUEVO DISEÑO PARA LOOPS INDIVIDUALES) --- */
+        /* --- SECCIÓN MÚSICA (LOOP STATION) --- */
         .music-layout { padding: 40px 5%; text-align: center; max-width: 1000px; margin: 0 auto; }
 
         .launchpad { 
@@ -220,28 +265,49 @@
                     <button class="category-btn" data-target="lashes">✨ Pestañas <span>➔</span></button>
                     <button class="category-btn" data-target="clothes">👗 Ropa <span>➔</span></button>
                     <button class="category-btn" data-target="acc">💎 Joyería <span>➔</span></button>
+                    <button class="category-btn" data-target="hair">💇‍♀️ Cabello <span>➔</span></button>
+                    <button class="category-btn" data-target="bg">🎨 Fondo <span>➔</span></button>
                     <h4 style="margin-top: 15px; text-align:center;">Paleta de Color</h4>
                     <div class="color-grid" id="palette-grid"></div>
                 </div>
 
                 <div class="model-container">
-                    <svg viewBox="0 0 500 550" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 500 550" xmlns="http://www.w3.org/2000/svg" style="overflow: visible;">
                         <defs>
-                            <linearGradient id="skin" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffdfc4" /><stop offset="100%" stop-color="#e3b692" /></linearGradient>
-                            <linearGradient id="hair-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1a1a2e" /><stop offset="100%" stop-color="#16213e" /></linearGradient>
+                            <linearGradient id="skin" class="layer-skin" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffdfc4" />
+                                <stop offset="100%" stop-color="#e3b692" />
+                            </linearGradient>
+                            <linearGradient id="hair-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1a1a2e" />
+                                <stop offset="100%" stop-color="#16213e" />
+                            </linearGradient>
                         </defs>
-                        <path d="M 120 150 Q 50 250 80 450 L 150 550 L 350 550 L 420 450 Q 450 250 380 150 Z" fill="url(#hair-grad)"/>
+
+                        <!-- Fondo Dinámico Animado -->
+                        <circle id="mk-bg" class="layer-bg" cx="250" cy="275" r="230" fill="transparent" />
+
+                        <!-- Cabello Fondo Animado -->
+                        <path id="mk-hair-back" class="layer-hair" d="M 120 150 Q 50 250 80 450 L 150 550 L 350 550 L 420 450 Q 450 250 380 150 Z" fill="url(#hair-grad)"/>
+                        
+                        <!-- Cuello y Hombros -->
                         <path d="M 210 350 L 290 350 Q 300 450 400 500 L 100 500 Q 200 450 210 350" fill="url(#skin)"/>
+                        <!-- Ropa Animada (Respiración) -->
                         <path id="mk-clothes" class="layer-cloth" d="M 170 420 Q 250 480 330 420 Q 370 450 400 500 L 100 500 Q 130 450 170 420 Z" fill="transparent" />
                         <path id="mk-acc" class="layer-acc" d="M 210 400 Q 250 460 290 400" fill="none" stroke="transparent" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 12"/>
+                        
+                        <!-- Rostro -->
                         <path d="M 160 180 Q 150 300 200 370 Q 250 400 300 370 Q 350 300 340 180 Q 250 130 160 180 Z" fill="url(#skin)"/>
                         
+                        <!-- Maquillaje -->
                         <circle id="mk-blush-l" class="layer-blush" cx="190" cy="290" r="35" fill="transparent" />
                         <circle id="mk-blush-r" class="layer-blush" cx="310" cy="290" r="35" fill="transparent" />
                         <path id="mk-shadow-l" class="layer-shadow" d="M 175 240 Q 200 215 225 240 Q 200 230 175 240 Z" fill="transparent"/>
                         <path id="mk-shadow-r" class="layer-shadow" d="M 275 240 Q 300 215 325 240 Q 300 230 275 240 Z" fill="transparent"/>
+                        
                         <g class="eyes">
-                            <path d="M 175 240 Q 200 225 225 240 Q 200 250 175 240 Z" fill="#fff"/><path d="M 275 240 Q 300 225 325 240 Q 300 250 275 240 Z" fill="#fff"/>
+                            <path d="M 175 240 Q 200 225 225 240 Q 200 250 175 240 Z" fill="#fff"/>
+                            <path d="M 275 240 Q 300 225 325 240 Q 300 250 275 240 Z" fill="#fff"/>
                             <circle cx="200" cy="238" r="9" fill="#4a2e1b"/><circle cx="300" cy="238" r="9" fill="#4a2e1b"/>
                             <circle cx="200" cy="238" r="4" fill="#000"/><circle cx="197" cy="235" r="2" fill="#fff"/>
                             <circle cx="300" cy="238" r="4" fill="#000"/><circle cx="297" cy="235" r="2" fill="#fff"/>
@@ -250,10 +316,13 @@
                             <g id="mk-lashes-l" class="layer-lashes" stroke-width="3" stroke-linecap="round"><line x1="175" y1="237" x2="165" y2="225" /><line x1="185" y1="231" x2="180" y2="215" /><line x1="195" y1="228" x2="195" y2="212" /></g>
                             <g id="mk-lashes-r" class="layer-lashes" stroke-width="3" stroke-linecap="round"><line x1="325" y1="237" x2="335" y2="225" /><line x1="315" y1="231" x2="320" y2="215" /><line x1="305" y1="228" x2="305" y2="212" /></g>
                         </g>
+                        
                         <path d="M 250 250 Q 255 285 245 290 Q 250 295 255 290" fill="none" stroke="#c49b7d" stroke-width="2" stroke-linecap="round"/>
                         <path d="M 225 325 Q 250 315 275 325 Q 250 345 225 325 Z" fill="#d19a84"/><path d="M 225 325 Q 250 325 275 325" stroke="#b07d67" stroke-width="1.5"/>
                         <path id="mk-lips" class="layer-lips" d="M 225 325 Q 250 315 275 325 Q 250 345 225 325 Z" fill="transparent"/>
-                        <path d="M 140 220 Q 150 150 250 150 Q 350 150 360 220 Q 320 180 250 180 Q 180 180 140 220 Z" fill="url(#hair-grad)"/>
+                        
+                        <!-- Cabello Frente Animado -->
+                        <path id="mk-hair-front" class="layer-hair" d="M 140 220 Q 150 150 250 150 Q 350 150 360 220 Q 320 180 250 180 Q 180 180 140 220 Z" fill="url(#hair-grad)"/>
                     </svg>
                 </div>
             </div>
@@ -262,7 +331,7 @@
         <!-- SECCIÓN: MÚSICA (LOOP STATION POLIRRÍTMICO) -->
         <main id="music-section" class="hidden fade-in">
             <div class="music-layout">
-                <h2 style="color: var(--neon-blue); font-size: 2.5rem; margin-bottom: 10px;">DJ LOOP STATION</h2>
+                <h2 style="color: var(--neon-blue); font-size: clamp(1.5rem, 4vw, 2.5rem); margin-bottom: 10px;">DJ LOOP STATION</h2>
                 <p style="margin-bottom: 30px; color: #888;">Toca los pads o activa los LOOPS individuales para crear ritmos combinados.</p>
                 
                 <!-- Consola dinámica generada por JS -->
@@ -295,12 +364,10 @@
             if(type === 'makeup') {
                 titleEl.innerText = "Estudio Pro";
                 titleEl.style.color = "var(--neon-pink)";
-                // Texto enfocado en creatividad
                 textEl.innerHTML = "<span>Propósito Educativo:</span> Esta actividad está diseñada para estimular al máximo la <span>creatividad visual</span> y la imaginación. Los niños podrán expresarse libremente, combinando estilos y descubriendo su propio sentido estético mientras se divierten diseñando.";
             } else {
                 titleEl.innerText = "Loop Station";
                 titleEl.style.color = "var(--neon-blue)";
-                // Texto enfocado en creatividad musical
                 textEl.innerHTML = "<span>Propósito Educativo:</span> Este laboratorio sonoro fomenta la <span>creatividad musical</span> y la exploración auditiva. Al poder cambiar la velocidad de cada sonido por separado, los niños crean combinaciones rítmicas únicas, desarrollando su oído y expresión artística de forma libre.";
             }
         }
@@ -336,7 +403,7 @@
         }
 
         /* =========================================
-           LÓGICA DEL MAQUILLAJE
+           LÓGICA DEL MAQUILLAJE Y ESTILO
            ========================================= */
         const makeupCategories = {
             lips: ['#e63946', '#ff007f', '#d90429', '#ffb5a7', '#8a2387', 'transparent'],
@@ -345,7 +412,9 @@
             eyeliner: ['#000000', '#b026ff', '#00f0ff', '#ffffff', '#ff0055', 'transparent'],
             lashes: ['#000000', '#ffffff', '#00f0ff', '#ff007f', '#39ff14', 'transparent'],
             clothes: ['#ff2a85', '#00f0ff', '#1a1a2e', '#ffaa00', '#ffffff', 'transparent'],
-            acc: ['#fffb00', '#cccccc', '#ff0055', '#00f0ff', 'transparent']
+            acc: ['#fffb00', '#cccccc', '#ff0055', '#00f0ff', 'transparent'],
+            hair: ['#2a1610', '#ffdd55', '#ff007f', '#5500ff', '#00f0ff', '#cccccc'],
+            bg: ['#ff007f', '#00f0ff', '#fffb00', '#b026ff', '#39ff14', 'transparent']
         };
 
         let currentTool = 'lips';
@@ -369,6 +438,7 @@
         function applyMakeup(category, color) {
             const isClear = color === 'transparent';
             const opacity = isClear ? '0' : (category === 'blush' ? '0.6' : '0.85');
+            
             if (category === 'lips') { document.getElementById('mk-lips').setAttribute('fill', color); document.getElementById('mk-lips').style.opacity = opacity; } 
             else if (category === 'shadow') { document.getElementById('mk-shadow-l').setAttribute('fill', color); document.getElementById('mk-shadow-r').setAttribute('fill', color); document.getElementById('mk-shadow-l').style.opacity = opacity; document.getElementById('mk-shadow-r').style.opacity = opacity; } 
             else if (category === 'blush') { document.getElementById('mk-blush-l').setAttribute('fill', color); document.getElementById('mk-blush-r').setAttribute('fill', color); document.getElementById('mk-blush-l').style.opacity = opacity; document.getElementById('mk-blush-r').style.opacity = opacity; } 
@@ -376,6 +446,8 @@
             else if (category === 'lashes') { document.getElementById('mk-lashes-l').setAttribute('stroke', color); document.getElementById('mk-lashes-r').setAttribute('stroke', color); document.getElementById('mk-lashes-l').style.opacity = isClear?'0':'1'; document.getElementById('mk-lashes-r').style.opacity = isClear?'0':'1'; } 
             else if (category === 'clothes') { document.getElementById('mk-clothes').setAttribute('fill', color); } 
             else if (category === 'acc') { document.getElementById('mk-acc').setAttribute('stroke', color); }
+            else if (category === 'hair') { document.getElementById('mk-hair-front').setAttribute('fill', color); document.getElementById('mk-hair-back').setAttribute('fill', color); }
+            else if (category === 'bg') { document.getElementById('mk-bg').setAttribute('fill', color); }
         }
 
         document.querySelectorAll('.category-btn').forEach(btn => {
@@ -403,46 +475,52 @@
 
         // --- Música (Fondo de Maquillaje) ---
         let makeupMusicInterval;
-        const magicScale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; 
+        const popMelody = [329.63, 392.00, 523.25, 659.25, 523.25, 392.00]; 
+        let popStep = 0;
+        
         function startMakeupMusic() {
             if(makeupMusicInterval) return;
             makeupMusicInterval = setInterval(() => {
                 if(!audioCtx) return;
+                const freq = popMelody[popStep % popMelody.length];
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = magicScale[Math.floor(Math.random() * magicScale.length)];
+                
+                osc.type = 'triangle'; 
+                osc.frequency.value = freq;
                 osc.connect(gain); gain.connect(audioCtx.destination);
+                
                 gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.015, audioCtx.currentTime + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
-                osc.start(); osc.stop(audioCtx.currentTime + 3);
-            }, 800);
+                gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+                
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+                popStep++;
+            }, 250); 
         }
         function stopMakeupMusic() { clearInterval(makeupMusicInterval); makeupMusicInterval = null; }
 
         /* =========================================
-           SISTEMA DJ DE LOOPS INDIVIDUALES
+           SISTEMA DJ (Polirritmia y Beatbox)
            ========================================= */
-        
-        // Base de datos de los botones
         const padsData = [
-            { id: 'kick', name: 'BOMBO', color: '#ff0055', type: 'drum' },
-            { id: 'snare', name: 'CAJA', color: '#00f0ff', type: 'drum' },
+            { id: 'kick', name: 'BOMBO ELEC', color: '#ff0055', type: 'drum' },
+            { id: 'snare', name: 'CAJA ELEC', color: '#00f0ff', type: 'drum' },
             { id: 'hihat', name: 'HI-HAT', color: '#39ff14', type: 'drum' },
-            { id: 'bx-kick', name: 'BX KICK', color: '#ff2a85', type: 'beatbox' },
-            { id: 'bx-snare', name: 'BX SNARE', color: '#b026ff', type: 'beatbox' },
-            { id: 'bx-hat', name: 'BX HAT', color: '#fffb00', type: 'beatbox' },
-            { id: 'synthC', name: 'NOTA C', color: '#b026ff', type: 'synth', freq: 261.63 },
-            { id: 'synthE', name: 'NOTA E', color: '#ff26e0', type: 'synth', freq: 329.63 },
-            { id: 'synthG', name: 'NOTA G', color: '#2655ff', type: 'synth', freq: 392.00 },
-            { id: 'synthB', name: 'NOTA B', color: '#00f0ff', type: 'synth', freq: 493.88 }
+            { id: 'bx-kick', name: 'VOCAL KICK', color: '#ff2a85', type: 'beatbox' },
+            { id: 'bx-snare', name: 'VOCAL SNARE', color: '#b026ff', type: 'beatbox' },
+            { id: 'bx-hat', name: 'VOCAL HAT', color: '#fffb00', type: 'beatbox' },
+            { id: 'bx-bass', name: 'BASS BOCA', color: '#ff5500', type: 'beatbox' },
+            { id: 'bx-scratch', name: 'SCRATCH', color: '#ff00dd', type: 'beatbox' },
+            { id: 'bx-click', name: 'CLIC LENGUA', color: '#00ffaa', type: 'beatbox' },
+            { id: 'bx-tom', name: 'VOCAL TOM', color: '#ff0000', type: 'beatbox' },
+            { id: 'bx-bloop', name: 'AGUA BLOOP', color: '#0066ff', type: 'beatbox' },
+            { id: 'bx-shaker', name: 'SHH SHH', color: '#eeeeee', type: 'beatbox' }
         ];
 
         const loopStates = {};
         const loopIntervals = {};
 
-        // Inyectar HTML Dinámicamente para incluir los sliders individuales
         const djBoard = document.getElementById('dj-board');
         padsData.forEach(pad => {
             loopStates[pad.id] = false;
@@ -453,15 +531,15 @@
                 <div class="controls-row">
                     <button class="loop-toggle" data-loop="${pad.id}" style="--pad-color: ${pad.color};">⟳ LOOP</button>
                     <div class="bpm-slider-container">
-                        <label>BPM: <span id="val-${pad.id}">120</span></label>
-                        <input type="range" id="bpm-${pad.id}" min="60" max="300" value="120" data-target="${pad.id}" style="--pad-color: ${pad.color};">
+                        <label>VELOCIDAD: <span id="val-${pad.id}">120</span></label>
+                        <input type="range" id="bpm-${pad.id}" min="40" max="300" value="120" data-target="${pad.id}" style="--pad-color: ${pad.color};">
                     </div>
                 </div>
             `;
             djBoard.appendChild(card);
         });
 
-        // Funciones de Generación de Sonido
+        // --- Generadores Sintéticos ---
         function playDrum(type) {
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -473,63 +551,76 @@
                 osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 gain.gain.setValueAtTime(1, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
             } else if(type === 'snare') {
                 const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 1000;
                 osc.type = 'square'; osc.disconnect(); osc.connect(filter); filter.connect(gain);
                 osc.frequency.setValueAtTime(250, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
             } else if(type === 'hihat') {
                 const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 7000;
                 osc.type = 'square'; osc.disconnect(); osc.connect(filter); filter.connect(gain);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.05);
             }
-        }
-
-        function playBeatbox(type) {
-            if(!audioCtx) return;
-            const t = audioCtx.currentTime;
-            
-            if(type === 'bx-kick') {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(30, t + 0.15); 
-                gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.15);
-            } else if (type === 'bx-snare') {
-                const noiseSource = audioCtx.createBufferSource(); noiseSource.buffer = noiseBuffer;
-                const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1500; filter.Q.value = 1.5;
-                const gain = audioCtx.createGain(); gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
-                noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noiseSource.start(t); noiseSource.stop(t + 0.2);
-            } else if (type === 'bx-hat') {
-                const noiseSource = audioCtx.createBufferSource(); noiseSource.buffer = noiseBuffer;
-                const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 5000;
-                const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-                noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noiseSource.start(t); noiseSource.stop(t + 0.05);
-            }
-        }
-
-        function playSynth(freq) {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.value = freq;
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
             osc.start(); osc.stop(audioCtx.currentTime + 0.4);
         }
 
-        // Reproducir sonido e iluminar el botón
+        // --- MOTOR AVANZADO DE BEATBOX ---
+        function playBeatbox(type) {
+            if(!audioCtx) return;
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator(); 
+            const gain = audioCtx.createGain();
+            
+            if(type === 'bx-kick') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(180, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.1); 
+                gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+            } else if (type === 'bx-snare') {
+                const noiseSource = audioCtx.createBufferSource(); noiseSource.buffer = noiseBuffer;
+                const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 2000; filter.Q.value = 1;
+                gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+                noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noiseSource.start(t); noiseSource.stop(t + 0.15);
+            } else if (type === 'bx-hat') {
+                const noiseSource = audioCtx.createBufferSource(); noiseSource.buffer = noiseBuffer;
+                const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 6000;
+                gain.gain.setValueAtTime(0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.04);
+                noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noiseSource.start(t); noiseSource.stop(t + 0.04);
+            } else if (type === 'bx-bass') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(55, t); 
+                const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(400, t); filter.frequency.exponentialRampToValueAtTime(100, t + 0.2); 
+                gain.gain.setValueAtTime(0.7, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.3);
+            } else if (type === 'bx-scratch') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, t); osc.frequency.linearRampToValueAtTime(300, t + 0.1); osc.frequency.linearRampToValueAtTime(800, t + 0.2);
+                gain.gain.setValueAtTime(0.6, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.2);
+            } else if (type === 'bx-click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1200, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.03);
+                gain.gain.setValueAtTime(1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.03);
+            } else if (type === 'bx-tom') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(80, t + 0.2);
+                gain.gain.setValueAtTime(0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.2);
+            } else if (type === 'bx-bloop') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(250, t); osc.frequency.exponentialRampToValueAtTime(1000, t + 0.1);
+                gain.gain.setValueAtTime(0.8, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+            } else if (type === 'bx-shaker') {
+                const noiseSource = audioCtx.createBufferSource(); noiseSource.buffer = noiseBuffer;
+                const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 4000; filter.Q.value = 0.5;
+                gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noiseSource.start(t); noiseSource.stop(t + 0.1);
+            }
+        }
+
         function triggerSound(padId) {
             const padInfo = padsData.find(p => p.id === padId);
             if(padInfo.type === 'drum') playDrum(padId);
             else if(padInfo.type === 'beatbox') playBeatbox(padId);
-            else if(padInfo.type === 'synth') playSynth(padInfo.freq);
             
             const btn = document.querySelector(`.pad-btn[data-sound="${padId}"]`);
             if(btn) {
@@ -538,7 +629,6 @@
             }
         }
 
-        // Actualizar el intervalo del loop de un pad específico (Polirritmia)
         function updatePadLoop(padId) {
             clearInterval(loopIntervals[padId]);
             if(loopStates[padId]) {
@@ -549,14 +639,13 @@
             }
         }
 
-        // Asignar eventos de click y touch a los botones
+        // Eventos de click/touch
         document.querySelectorAll('.pad-btn').forEach(btn => {
             btn.addEventListener('pointerdown', (e) => {
                 e.preventDefault(); triggerSound(btn.getAttribute('data-sound'));
             });
         });
 
-        // Asignar evento al botón de LOOP
         document.querySelectorAll('.loop-toggle').forEach(btn => {
             btn.onclick = () => {
                 const padId = btn.getAttribute('data-loop');
@@ -566,13 +655,11 @@
             };
         });
 
-        // Asignar evento al slider de velocidad (BPM)
         document.querySelectorAll('input[type="range"]').forEach(slider => {
             slider.addEventListener('input', (e) => {
                 const padId = e.target.getAttribute('data-target');
                 document.getElementById(`val-${padId}`).innerText = e.target.value;
-                // Si el loop está activo, se actualiza la velocidad en tiempo real
-                if(loopStates[padId]) updatePadLoop(padId);
+                if(loopStates[padId]) updatePadLoop(padId); // Actualiza si está sonando en tiempo real
             });
         });
 
