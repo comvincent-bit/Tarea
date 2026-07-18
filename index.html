@@ -748,7 +748,7 @@
         function stopMakeupMusic() { clearInterval(makeupMusicInterval); makeupMusicInterval = null; }
 
         /* =========================================
-           SISTEMA DJ (ESTILO INCREDIBOX)
+           SISTEMA DJ (ESTILO INCREDIBOX SECUENCIADO)
            ========================================= */
         const padsData = [
             // BEATS (Rítmica Fuerte) - Rosa Pastel
@@ -785,7 +785,13 @@
             loopStates[pad.id] = false; const card = document.createElement('div'); card.className = 'pad-card';
             card.innerHTML = `
                 <button class="pad-btn" data-sound="${pad.id}" style="--pad-color: ${pad.color};">${pad.name}</button>
-                <div class="controls-row"><button class="loop-toggle" data-loop="${pad.id}" style="--pad-color: ${pad.color};">⟳ LOOP</button><div class="bpm-slider-container"><label>BPM: <span id="val-${pad.id}">120</span></label><input type="range" id="bpm-${pad.id}" min="60" max="180" value="120" data-target="${pad.id}" style="--pad-color: ${pad.color};"></div></div>
+                <div class="controls-row">
+                    <button class="loop-toggle" data-loop="${pad.id}" style="--pad-color: ${pad.color};">⟳ LOOP</button>
+                    <div class="bpm-slider-container">
+                        <label>BPM: <span id="val-${pad.id}">120</span></label>
+                        <input type="range" id="bpm-${pad.id}" min="80" max="160" value="120" data-target="${pad.id}" style="--pad-color: ${pad.color};">
+                    </div>
+                </div>
             `; djBoard.appendChild(card);
         });
 
@@ -794,13 +800,13 @@
             const bar = document.createElement('div'); bar.style.width = '10px'; bar.style.height = '5px'; bar.style.background = 'var(--pastel-blue)'; bar.style.borderRadius = '5px'; bar.style.transition = 'height 0.1s ease, background 0.2s'; visualizer.appendChild(bar);
         }
 
-        // Sintetizador Complejo para estilo Incredibox (Melodías, Formantes Vocales y Ritmos)
+        // Sintetizador Complejo: Ahora rellena los 4 tiempos (beats) enteros como un secuenciador
         function playComplexSound(type, t, beat, gainNode) {
             if(!audioCtx) return;
             
             // Frecuencias Pentatónicas de Do Menor (C, Eb, F, G, Bb)
             const nC2 = 65.41, nEb2 = 77.78, nG2 = 98.00;
-            const nC3 = 130.81, nEb3 = 155.56, nG3 = 196.00;
+            const nC3 = 130.81, nEb3 = 155.56, nF3 = 174.61, nG3 = 196.00;
             const nC4 = 261.63, nEb4 = 311.13, nF4 = 349.23, nG4 = 392.00, nBb4 = 466.16;
             const nC5 = 523.25;
 
@@ -814,55 +820,65 @@
             switch(type) {
                 // === GRUPO 1: BEATS ===
                 case 'beat-kick':
-                    const oscK = audioCtx.createOscillator(); oscK.type = 'sine';
-                    oscK.frequency.setValueAtTime(150, t); oscK.frequency.exponentialRampToValueAtTime(40, t + 0.1);
-                    rampGain(gainNode, 0, 1, 0.001, t, t + 0.01, t + 0.5);
-                    oscK.connect(gainNode); oscK.start(t); oscK.stop(t + 0.5);
+                    // Bombo rítmico: beat 1, beat 2.5 y beat 3.5 (Hip Hop Groove)
+                    [0, beat*1.5, beat*2.5].forEach(offset => {
+                        const kt = t + offset;
+                        const oscK = audioCtx.createOscillator(); oscK.type = 'sine';
+                        oscK.frequency.setValueAtTime(150, kt); oscK.frequency.exponentialRampToValueAtTime(40, kt + 0.1);
+                        const gK = audioCtx.createGain();
+                        rampGain(gK, 0, 1, 0.001, kt, kt + 0.01, kt + 0.5);
+                        oscK.connect(gK); gK.connect(gainNode); oscK.start(kt); oscK.stop(kt + 0.5);
+                    });
                     break;
 
                 case 'beat-snare':
-                    const oscS = audioCtx.createOscillator(); oscS.type = 'triangle';
-                    oscS.frequency.setValueAtTime(250, t); oscS.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-                    const nS = audioCtx.createBufferSource(); nS.buffer = noiseBuffer;
-                    const fS = audioCtx.createBiquadFilter(); fS.type = 'highpass'; fS.frequency.value = 1500;
-                    rampGain(gainNode, 0, 0.8, 0.001, t, t + 0.01, t + 0.3);
-                    oscS.connect(gainNode); nS.connect(fS); fS.connect(gainNode);
-                    oscS.start(t); oscS.stop(t + 0.3); nS.start(t); nS.stop(t + 0.3);
+                    // Caja (Snare) en los tiempos 2 y 4 (Backbeat estándar)
+                    [beat, beat*3].forEach(offset => {
+                        const st = t + offset;
+                        const oscS = audioCtx.createOscillator(); oscS.type = 'triangle';
+                        oscS.frequency.setValueAtTime(250, st); oscS.frequency.exponentialRampToValueAtTime(100, st + 0.1);
+                        const nS = audioCtx.createBufferSource(); nS.buffer = noiseBuffer;
+                        const fS = audioCtx.createBiquadFilter(); fS.type = 'highpass'; fS.frequency.value = 1500;
+                        const gS = audioCtx.createGain();
+                        rampGain(gS, 0, 0.8, 0.001, st, st + 0.01, st + 0.3);
+                        oscS.connect(gS); nS.connect(fS); fS.connect(gS); gS.connect(gainNode);
+                        oscS.start(st); oscS.stop(st + 0.3); nS.start(st); nS.stop(st + 0.3);
+                    });
                     break;
 
                 case 'beat-hat':
-                    // Loop de 8 notas cortas (Corcheas) a lo largo de 4 beats
+                    // Hi-Hat de corcheas continuas a lo largo de todo el compás (8 golpes)
                     for(let i=0; i<8; i++) {
-                        const hT = t + (i * (beat / 2));
+                        const ht = t + (i * (beat / 2));
                         const nH = audioCtx.createBufferSource(); nH.buffer = noiseBuffer;
                         const fH = audioCtx.createBiquadFilter(); fH.type = 'highpass'; fH.frequency.value = 7000;
                         const gH = audioCtx.createGain();
-                        rampGain(gH, 0, (i%4===0?0.5:0.2), 0.001, hT, hT + 0.01, hT + 0.05);
+                        rampGain(gH, 0, (i%4===0 ? 0.5 : 0.2), 0.001, ht, ht + 0.01, ht + 0.05);
                         nH.connect(fH); fH.connect(gH); gH.connect(gainNode);
-                        nH.start(hT); nH.stop(hT + 0.1);
+                        nH.start(ht); nH.stop(ht + 0.1);
                     }
                     break;
 
                 case 'beat-liproll':
-                    // Bass profundo y sucio
+                    // Bass profundo y continuo que abarca los 4 tiempos completos
                     const oscL = audioCtx.createOscillator(); oscL.type = 'sawtooth'; oscL.frequency.value = 45;
                     const fL = audioCtx.createBiquadFilter(); fL.type = 'lowpass'; fL.frequency.value = 200;
                     const lfoL = audioCtx.createOscillator(); lfoL.type = 'sine'; lfoL.frequency.value = 12; // Modulación (Garganta)
                     const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 150;
                     lfoL.connect(lfoGain); lfoGain.connect(fL.frequency);
-                    rampGain(gainNode, 0, 0.8, 0.001, t, t + 0.1, t + beat*2);
+                    rampGain(gainNode, 0, 0.8, 0.001, t, t + 0.1, t + beat*4);
                     oscL.connect(fL); fL.connect(gainNode);
-                    oscL.start(t); oscL.stop(t + beat*2); lfoL.start(t); lfoL.stop(t + beat*2);
+                    oscL.start(t); oscL.stop(t + beat*4); lfoL.start(t); lfoL.stop(t + beat*4);
                     break;
 
                 case 'beat-shaker':
-                    // 16 notas continuas rítmicas
+                    // Semicorcheas (16 golpes rápidos llenando los 4 tiempos)
                     for(let i=0; i<16; i++) {
                         const sT = t + (i * (beat / 4));
                         const nSh = audioCtx.createBufferSource(); nSh.buffer = noiseBuffer;
                         const fSh = audioCtx.createBiquadFilter(); fSh.type = 'bandpass'; fSh.frequency.value = 5000; fSh.Q.value = 1.5;
                         const gSh = audioCtx.createGain();
-                        rampGain(gSh, 0, (i%4===0?0.4:0.15), 0.001, sT, sT + 0.02, sT + 0.1);
+                        rampGain(gSh, 0, (i%4===0 ? 0.4 : 0.15), 0.001, sT, sT + 0.01, sT + 0.1);
                         nSh.connect(fSh); fSh.connect(gSh); gSh.connect(gainNode);
                         nSh.start(sT); nSh.stop(sT + 0.15);
                     }
@@ -870,33 +886,50 @@
 
                 // === GRUPO 2: EFFECTS ===
                 case 'fx-scratch':
-                    const oscSc = audioCtx.createOscillator(); oscSc.type = 'sine';
-                    oscSc.frequency.setValueAtTime(400, t);
-                    oscSc.frequency.exponentialRampToValueAtTime(1500, t + 0.1);
-                    oscSc.frequency.exponentialRampToValueAtTime(300, t + 0.2);
-                    oscSc.frequency.exponentialRampToValueAtTime(1200, t + 0.3);
-                    rampGain(gainNode, 0, 0.6, 0.001, t, t + 0.05, t + 0.4);
-                    oscSc.connect(gainNode); oscSc.start(t); oscSc.stop(t + 0.4);
+                    // Dos golpes de Scratch dinámicos
+                    [0, beat*2].forEach(offset => {
+                        const st = t + offset;
+                        const oscSc = audioCtx.createOscillator(); oscSc.type = 'sine';
+                        oscSc.frequency.setValueAtTime(400, st);
+                        oscSc.frequency.exponentialRampToValueAtTime(1500, st + 0.1);
+                        oscSc.frequency.exponentialRampToValueAtTime(300, st + 0.2);
+                        oscSc.frequency.exponentialRampToValueAtTime(1200, st + 0.3);
+                        const gSc = audioCtx.createGain();
+                        rampGain(gSc, 0, 0.6, 0.001, st, st + 0.05, st + 0.4);
+                        oscSc.connect(gSc); gSc.connect(gainNode); oscSc.start(st); oscSc.stop(st + 0.4);
+                    });
                     break;
 
                 case 'fx-bloop':
-                    const oscBl = audioCtx.createOscillator(); oscBl.type = 'sine';
-                    oscBl.frequency.setValueAtTime(300, t); oscBl.frequency.exponentialRampToValueAtTime(1800, t + 0.15);
-                    rampGain(gainNode, 0, 0.8, 0.001, t, t + 0.02, t + 0.2);
-                    oscBl.connect(gainNode); gainNode.connect(delayNode); oscBl.start(t); oscBl.stop(t + 0.2);
+                    // 3 Gotitas sintéticas espaciadas
+                    [0, beat, beat*2.5].forEach(offset => {
+                        const bt_ = t + offset;
+                        const oscBl = audioCtx.createOscillator(); oscBl.type = 'sine';
+                        oscBl.frequency.setValueAtTime(300, bt_); oscBl.frequency.exponentialRampToValueAtTime(1800, bt_ + 0.15);
+                        const gBl = audioCtx.createGain();
+                        rampGain(gBl, 0, 0.8, 0.001, bt_, bt_ + 0.02, bt_ + 0.2);
+                        oscBl.connect(gBl); gBl.connect(gainNode); gainNode.connect(delayNode); 
+                        oscBl.start(bt_); oscBl.stop(bt_ + 0.2);
+                    });
                     break;
 
                 case 'fx-robot':
-                    const oscR1 = audioCtx.createOscillator(); oscR1.type = 'square'; oscR1.frequency.value = 110;
-                    const oscR2 = audioCtx.createOscillator(); oscR2.type = 'square'; oscR2.frequency.value = 112;
-                    const fR = audioCtx.createBiquadFilter(); fR.type = 'bandpass'; fR.Q.value = 5;
-                    fR.frequency.setValueAtTime(400, t); fR.frequency.linearRampToValueAtTime(2000, t + 0.1); fR.frequency.linearRampToValueAtTime(400, t + 0.3);
-                    rampGain(gainNode, 0, 0.5, 0.001, t, t + 0.05, t + 0.4);
-                    oscR1.connect(fR); oscR2.connect(fR); fR.connect(gainNode); gainNode.connect(delayNode);
-                    oscR1.start(t); oscR2.start(t); oscR1.stop(t + 0.4); oscR2.stop(t + 0.4);
+                    // Habla Robótica rítmica
+                    [0, beat*1.5, beat*3].forEach(offset => {
+                        const rt = t + offset;
+                        const oscR1 = audioCtx.createOscillator(); oscR1.type = 'square'; oscR1.frequency.value = 110;
+                        const oscR2 = audioCtx.createOscillator(); oscR2.type = 'square'; oscR2.frequency.value = 112;
+                        const fR = audioCtx.createBiquadFilter(); fR.type = 'bandpass'; fR.Q.value = 5;
+                        fR.frequency.setValueAtTime(400, rt); fR.frequency.linearRampToValueAtTime(2000, rt + 0.1); fR.frequency.linearRampToValueAtTime(400, rt + 0.3);
+                        const gR = audioCtx.createGain();
+                        rampGain(gR, 0, 0.5, 0.001, rt, rt + 0.05, rt + 0.4);
+                        oscR1.connect(fR); oscR2.connect(fR); fR.connect(gR); gR.connect(gainNode); gainNode.connect(delayNode);
+                        oscR1.start(rt); oscR2.start(rt); oscR1.stop(rt + 0.4); oscR2.stop(rt + 0.4);
+                    });
                     break;
                 
                 case 'fx-wind':
+                    // Viento ambiental prolongado a 4 tiempos
                     const nW = audioCtx.createBufferSource(); nW.buffer = noiseBuffer;
                     const fW = audioCtx.createBiquadFilter(); fW.type = 'bandpass'; fW.Q.value = 3;
                     fW.frequency.setValueAtTime(300, t); fW.frequency.exponentialRampToValueAtTime(2500, t + beat*2); fW.frequency.exponentialRampToValueAtTime(300, t + beat*4);
@@ -906,44 +939,52 @@
                     break;
 
                 case 'fx-zap':
-                    const oscZ = audioCtx.createOscillator(); oscZ.type = 'sawtooth'; oscZ.frequency.value = 150;
-                    const fZ = audioCtx.createBiquadFilter(); fZ.type = 'lowpass'; fZ.Q.value = 10;
-                    fZ.frequency.setValueAtTime(4000, t); fZ.frequency.exponentialRampToValueAtTime(100, t + 0.2);
-                    rampGain(gainNode, 0, 0.7, 0.001, t, t + 0.01, t + 0.25);
-                    oscZ.connect(fZ); fZ.connect(gainNode);
-                    oscZ.start(t); oscZ.stop(t + 0.25);
+                    // Efectos ZAP láser rápidos en patrones
+                    [0, beat*1.5, beat*2, beat*3.5].forEach(offset => {
+                        const zt = t + offset;
+                        const oscZ = audioCtx.createOscillator(); oscZ.type = 'sawtooth'; oscZ.frequency.value = 150;
+                        const fZ = audioCtx.createBiquadFilter(); fZ.type = 'lowpass'; fZ.Q.value = 10;
+                        fZ.frequency.setValueAtTime(4000, zt); fZ.frequency.exponentialRampToValueAtTime(100, zt + 0.2);
+                        const gZ = audioCtx.createGain();
+                        rampGain(gZ, 0, 0.7, 0.001, zt, zt + 0.01, zt + 0.25);
+                        oscZ.connect(fZ); fZ.connect(gZ); gZ.connect(gainNode);
+                        oscZ.start(zt); oscZ.stop(zt + 0.25);
+                    });
                     break;
 
                 // === GRUPO 3: MELODIES (C Minor Pentatonic) ===
                 case 'mel-bass':
-                    // Línea de bajo gruesa
-                    const bassNotes = [nC2, 0, nEb2, nG2];
-                    bassNotes.forEach((f, i) => {
-                        if(f===0) return;
-                        const bt = t + (i * beat);
-                        const oscB = audioCtx.createOscillator(); oscB.type = 'triangle'; oscB.frequency.value = f;
+                    // Línea de bajo con Groove
+                    const bassNotes = [
+                        {f: nC2, d: 0, dur: beat*1.5},
+                        {f: nEb2, d: beat*1.5, dur: beat*0.5},
+                        {f: nG2, d: beat*2.5, dur: beat*1.5}
+                    ];
+                    bassNotes.forEach(note => {
+                        const bt = t + note.d;
+                        const oscB = audioCtx.createOscillator(); oscB.type = 'triangle'; oscB.frequency.value = note.f;
                         const fB = audioCtx.createBiquadFilter(); fB.type = 'lowpass'; fB.frequency.value = 400;
                         const gB = audioCtx.createGain();
-                        rampGain(gB, 0, 0.8, 0.001, bt, bt + 0.05, bt + beat - 0.1);
+                        rampGain(gB, 0, 0.8, 0.001, bt, bt + 0.05, bt + note.dur - 0.05);
                         oscB.connect(fB); fB.connect(gB); gB.connect(gainNode);
-                        oscB.start(bt); oscB.stop(bt + beat);
+                        oscB.start(bt); oscB.stop(bt + note.dur);
                     });
                     break;
 
                 case 'mel-chords':
-                    // Acorde sostenido C Menor que se desvanece suavemente
+                    // Acorde envolvente a lo largo del compás
                     [nC4, nEb4, nG4].forEach(f => {
                         const oscC = audioCtx.createOscillator(); oscC.type = 'sawtooth'; oscC.frequency.value = f;
                         const fC = audioCtx.createBiquadFilter(); fC.type = 'lowpass'; fC.frequency.value = 800;
                         const gC = audioCtx.createGain();
-                        rampGain(gC, 0, 0.2, 0.001, t, t + beat, t + beat*4);
+                        rampGain(gC, 0, 0.2, 0.001, t, t + beat*2, t + beat*4);
                         oscC.connect(fC); fC.connect(gC); gC.connect(gainNode); gainNode.connect(delayNode);
                         oscC.start(t); oscC.stop(t + beat*4);
                     });
                     break;
 
                 case 'mel-arp':
-                    // Arpegio pentatónico rápido
+                    // Arpegio pentatónico rápido (8 notas fluidas en el compás)
                     const arpNotes = [nC4, nEb4, nG4, nC5, nBb4, nG4, nEb4, nC4];
                     arpNotes.forEach((f, i) => {
                         const at = t + (i * (beat / 2));
@@ -957,8 +998,11 @@
                     break;
                 
                 case 'mel-pluck':
-                    // Melodía sincopada de sintetizador Pluck
-                    const pluckNotes = [{f: nC5, d: 0}, {f: nG4, d: beat*1.5}, {f: nEb4, d: beat*2.5}];
+                    // Melodía sincopada alegre (Sintetizador de cuerdas)
+                    const pluckNotes = [
+                        {f: nC5, d: 0}, {f: nG4, d: beat*0.75}, {f: nEb4, d: beat*1.5},
+                        {f: nF4, d: beat*2.25}, {f: nC4, d: beat*3}
+                    ];
                     pluckNotes.forEach(note => {
                         const pt = t + note.d;
                         const oscP = audioCtx.createOscillator(); oscP.type = 'square'; oscP.frequency.value = note.f;
@@ -972,11 +1016,14 @@
                     break;
 
                 case 'mel-wood':
-                    // Estilo Marimba/Xilófono
-                    const woodNotes = [nC4, nEb4, nC4, nG3, nC4, nEb4, nC4, nF4];
-                    woodNotes.forEach((f, i) => {
-                        const wt = t + (i * (beat / 2));
-                        const oscW = audioCtx.createOscillator(); oscW.type = 'sine'; oscW.frequency.value = f;
+                    // Estilo Marimba o Xilófono rebotando
+                    const woodNotes = [
+                        {f: nC4, d: 0}, {f: nEb4, d: beat*0.5}, {f: nC4, d: beat*1.5},
+                        {f: nG3, d: beat*2}, {f: nC4, d: beat*2.5}, {f: nEb4, d: beat*3}, {f: nF4, d: beat*3.5}
+                    ];
+                    woodNotes.forEach(note => {
+                        const wt = t + note.d;
+                        const oscW = audioCtx.createOscillator(); oscW.type = 'sine'; oscW.frequency.value = note.f;
                         const gW = audioCtx.createGain();
                         rampGain(gW, 0, 0.6, 0.001, wt, wt + 0.01, wt + 0.15);
                         oscW.connect(gW); gW.connect(gainNode);
@@ -984,11 +1031,11 @@
                     });
                     break;
 
-                // === GRUPO 4: VOICES (Coros Simualdos) ===
+                // === GRUPO 4: VOICES (Coros Simulados) ===
                 case 'voc-hum':
-                    // Coro grave tipo "Mmmm"
+                    // Coro grave tipo "Mmmm" prolongado (Compás completo)
                     const oscH1 = audioCtx.createOscillator(); oscH1.type = 'sawtooth'; oscH1.frequency.value = nC3;
-                    const oscH2 = audioCtx.createOscillator(); oscH2.type = 'sawtooth'; oscH2.frequency.value = nC3 * 1.01; // Detune (Chorus)
+                    const oscH2 = audioCtx.createOscillator(); oscH2.type = 'sawtooth'; oscH2.frequency.value = nC3 * 1.01; // Detune
                     const fHum = audioCtx.createBiquadFilter(); fHum.type = 'lowpass'; fHum.frequency.value = 350;
                     rampGain(gainNode, 0, 0.5, 0.001, t, t + beat, t + beat*4);
                     oscH1.connect(fHum); oscH2.connect(fHum); fHum.connect(gainNode);
@@ -996,21 +1043,22 @@
                     break;
 
                 case 'voc-ahh':
-                    // Coro "Ahhh" usando formantes duales
+                    // Coro "Ahhh" usando formantes (Filtros vocales) (Compás Completo)
                     const ahNotes = [nC4, nEb4, nG4];
-                    const fAh1 = audioCtx.createBiquadFilter(); fAh1.type = 'bandpass'; fAh1.frequency.value = 700; fAh1.Q.value = 2; // Formante 1
-                    const fAh2 = audioCtx.createBiquadFilter(); fAh2.type = 'bandpass'; fAh2.frequency.value = 1200; fAh2.Q.value = 2; // Formante 2
+                    const fAh1 = audioCtx.createBiquadFilter(); fAh1.type = 'bandpass'; fAh1.frequency.value = 700; fAh1.Q.value = 2; 
+                    const fAh2 = audioCtx.createBiquadFilter(); fAh2.type = 'bandpass'; fAh2.frequency.value = 1200; fAh2.Q.value = 2; 
+                    const gAh = audioCtx.createGain();
+                    rampGain(gAh, 0, 0.6, 0.001, t, t + beat*2, t + beat*4);
                     ahNotes.forEach(f => {
                         const oscV = audioCtx.createOscillator(); oscV.type = 'sawtooth'; oscV.frequency.value = f;
                         oscV.connect(fAh1); oscV.connect(fAh2);
                         oscV.start(t); oscV.stop(t + beat*4);
                     });
-                    rampGain(gainNode, 0, 0.6, 0.001, t, t + beat, t + beat*4);
-                    fAh1.connect(gainNode); fAh2.connect(gainNode); gainNode.connect(delayNode);
+                    fAh1.connect(gAh); fAh2.connect(gAh); gAh.connect(gainNode); gainNode.connect(delayNode);
                     break;
 
                 case 'voc-ooo':
-                    // Coro suave "Ooooh"
+                    // Coro misterioso y suave "Ooooh"
                     const ooNotes = [nG3, nC4];
                     const fOo = audioCtx.createBiquadFilter(); fOo.type = 'bandpass'; fOo.frequency.value = 400; fOo.Q.value = 1.5;
                     ooNotes.forEach(f => {
@@ -1022,30 +1070,34 @@
                     break;
 
                 case 'voc-yeah':
-                    // Filtro de formante móvil imitando voz robótica
-                    const oscY1 = audioCtx.createOscillator(); oscY1.type = 'sawtooth'; oscY1.frequency.value = nC4;
-                    const oscY2 = audioCtx.createOscillator(); oscY2.type = 'square'; oscY2.frequency.value = nC4;
-                    const fY = audioCtx.createBiquadFilter(); fY.type = 'bandpass'; fY.Q.value = 4;
-                    // Movimiento del formante para decir "Y-E-A-H"
-                    fY.frequency.setValueAtTime(300, t); 
-                    fY.frequency.exponentialRampToValueAtTime(1500, t + 0.15); 
-                    fY.frequency.exponentialRampToValueAtTime(800, t + 0.4);
-                    rampGain(gainNode, 0, 0.7, 0.001, t, t + 0.1, t + beat*2);
-                    oscY1.connect(fY); oscY2.connect(fY); fY.connect(gainNode); gainNode.connect(delayNode);
-                    oscY1.start(t); oscY2.start(t); oscY1.stop(t + beat*2); oscY2.stop(t + beat*2);
+                    // Sílaba Vocal dinámica ("YEAAAH")
+                    [0, beat*2].forEach(offset => {
+                        const yt = t + offset;
+                        const oscY1 = audioCtx.createOscillator(); oscY1.type = 'sawtooth'; oscY1.frequency.value = nC4;
+                        const oscY2 = audioCtx.createOscillator(); oscY2.type = 'square'; oscY2.frequency.value = nC4;
+                        const fY = audioCtx.createBiquadFilter(); fY.type = 'bandpass'; fY.Q.value = 4;
+                        // Movimiento del filtro para simular boca abriéndose y cerrándose
+                        fY.frequency.setValueAtTime(300, yt); 
+                        fY.frequency.exponentialRampToValueAtTime(1500, yt + 0.15); 
+                        fY.frequency.exponentialRampToValueAtTime(800, yt + 0.4);
+                        const gY = audioCtx.createGain();
+                        rampGain(gY, 0, 0.7, 0.001, yt, yt + 0.1, yt + beat - 0.1);
+                        oscY1.connect(fY); oscY2.connect(fY); fY.connect(gY); gY.connect(gainNode); gainNode.connect(delayNode);
+                        oscY1.start(yt); oscY2.start(yt); oscY1.stop(yt + beat); oscY2.stop(yt + beat);
+                    });
                     break;
 
                 case 'voc-doo':
-                    // Sílaba percusiva vocal "Doo"
-                    [0, beat*2].forEach(d => {
-                        const dt = t + d;
+                    // Sílaba percusiva vocal (Doo - doo) repartida por el compás
+                    [0, beat, beat*2, beat*2.5, beat*3.5].forEach(offset => {
+                        const dt = t + offset;
                         const oscD = audioCtx.createOscillator(); oscD.type = 'triangle'; 
-                        oscD.frequency.setValueAtTime(600, dt); oscD.frequency.exponentialRampToValueAtTime(nC4, dt + 0.05); // Golpe inicial
+                        oscD.frequency.setValueAtTime(600, dt); oscD.frequency.exponentialRampToValueAtTime(nC4, dt + 0.05);
                         const fD = audioCtx.createBiquadFilter(); fD.type = 'lowpass'; fD.frequency.value = 900;
                         const gD = audioCtx.createGain();
-                        rampGain(gD, 0, 0.8, 0.001, dt, dt + 0.02, dt + beat - 0.1);
+                        rampGain(gD, 0, 0.8, 0.001, dt, dt + 0.02, dt + beat/2 - 0.05);
                         oscD.connect(fD); fD.connect(gD); gD.connect(gainNode); gainNode.connect(delayNode);
-                        oscD.start(dt); oscD.stop(dt + beat);
+                        oscD.start(dt); oscD.stop(dt + beat/2);
                     });
                     break;
             }
@@ -1056,19 +1108,19 @@
             if(audioCtx) { 
                 const bpmInput = document.getElementById(`bpm-${padId}`);
                 const bpm = bpmInput ? parseInt(bpmInput.value) : 120;
-                const beatDuration = 60 / bpm; // 1 beat en segundos
+                const beatDuration = 60 / bpm; // Tiempo exacto de 1 beat
                 const t = audioCtx.currentTime; 
                 const gainNode = audioCtx.createGain(); 
                 gainNode.connect(masterGain);
                 
+                // Manda a llamar todo el patrón rítmico que llenará los 4 tiempos
                 playComplexSound(padId, t, beatDuration, gainNode); 
             }
             
             const btn = document.querySelector(`.pad-btn[data-sound="${padId}"]`);
             if(btn) { 
                 btn.classList.add('active-hit'); 
-                // La animación se queda encendida un poco más para los loops largos
-                setTimeout(() => btn.classList.remove('active-hit'), 250); 
+                setTimeout(() => btn.classList.remove('active-hit'), 250); // Animación visual suave
             }
             
             if (visualizer) {
@@ -1085,16 +1137,24 @@
             clearInterval(loopIntervals[padId]);
             if(loopStates[padId]) { 
                 const bpm = parseInt(document.getElementById(`bpm-${padId}`).value); 
-                // Cada loop estilo Incredibox dura 4 beats (un compás) para permitir melodías largas
+                // Cada loop sigue siendo de 4 beats, pero ahora la música de adentro *llena* esos 4 beats
                 const loopMs = (60000 / bpm) * 4; 
-                triggerSound(padId); 
+                triggerSound(padId); // Lo dispara en cuanto enciendes el loop
                 loopIntervals[padId] = setInterval(() => triggerSound(padId), loopMs); 
             }
         }
 
         document.querySelectorAll('.pad-btn').forEach(btn => { btn.addEventListener('pointerdown', (e) => { e.preventDefault(); triggerSound(btn.getAttribute('data-sound')); }); });
         document.querySelectorAll('.loop-toggle').forEach(btn => { btn.onclick = () => { const padId = btn.getAttribute('data-loop'); loopStates[padId] = !loopStates[padId]; btn.classList.toggle('looping'); updatePadLoop(padId); }; });
-        document.querySelectorAll('input[type="range"]').forEach(slider => { slider.addEventListener('input', (e) => { const padId = e.target.getAttribute('data-target'); document.getElementById(`val-${padId}`).innerText = e.target.value; if(loopStates[padId]) updatePadLoop(padId); }); });
+        
+        // --- Escuchar cambios del BPM EN VIVO para recalcular el loop
+        document.querySelectorAll('input[type="range"]').forEach(slider => { 
+            slider.addEventListener('input', (e) => { 
+                const padId = e.target.getAttribute('data-target'); 
+                document.getElementById(`val-${padId}`).innerText = e.target.value; 
+                if(loopStates[padId]) updatePadLoop(padId); 
+            }); 
+        });
 
         /* =========================================
            LÓGICA DE JUEGOS (SUDOKU Y MEMORIA)
