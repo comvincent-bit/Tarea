@@ -38,6 +38,15 @@
             cursor: default; 
         }
 
+        /* --- CONTENEDOR PRINCIPAL PARA CONTROLAR CAPAS --- */
+        #main-wrapper {
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh;
+            position: relative;
+            z-index: 10; /* Asegura que toda la app esté POR ENCIMA de las notas flotantes */
+        }
+
         /* --- UTILIDADES --- */
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
@@ -47,14 +56,14 @@
         .sparkle-trail {
             position: fixed;
             pointer-events: none;
-            z-index: 99999;
+            z-index: 99999; /* Siempre por encima de todo */
             transform: translate(-50%, -50%) scale(1);
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s ease-out;
             opacity: 1;
         }
 
         /* --- PANTALLAS DE INICIO Y PROPÓSITO --- */
-        #intro-screen, #purpose-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 20px; z-index: 10; }
+        #intro-screen, #purpose-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 20px; }
         
         /* Título Principal Soft */
         .main-title {
@@ -124,7 +133,7 @@
         .btn-back:hover { background: var(--pastel-pink); color: #fff; }
 
         /* --- LAYOUT GENERAL SECCIONES --- */
-        .app-layout { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 40px; padding: 30px 5%; max-width: 1200px; margin: 0 auto; flex: 1; z-index: 10; position: relative;}
+        .app-layout { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 40px; padding: 30px 5%; max-width: 1200px; margin: 0 auto; flex: 1; }
         
         /* --- ESTILOS: MAQUILLAJE --- */
         .tools-panel { background: #fff; padding: 25px; border-radius: 30px; border: 1px solid var(--glass-border); width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-soft); }
@@ -133,7 +142,6 @@
         .category-btn:hover { background: #fdf4f6; color: var(--pastel-pink); border-color: var(--pastel-pink); }
         .category-btn.active { background: var(--pastel-pink); color: #fff; border-color: var(--pastel-pink); box-shadow: 0 5px 15px rgba(244, 179, 194, 0.4); }
         
-        /* Ajuste de color-grid para las 10 opciones */
         .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; justify-items: center; }
         .color-swatch { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid #fff; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 1rem;}
         .color-swatch:hover { transform: scale(1.15); }
@@ -168,7 +176,7 @@
         #pupil-l, #pupil-r { transition: transform 0.08s ease-out; }
 
         /* --- ESTILOS: MÚSICA DJ --- */
-        .music-layout { padding: 30px 5%; text-align: center; max-width: 1200px; margin: 0 auto; flex: 1; width: 100%; position: relative; z-index: 10;}
+        .music-layout { padding: 30px 5%; text-align: center; max-width: 1200px; margin: 0 auto; flex: 1; width: 100%; }
         .launchpad { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; background: #fff; padding: 25px; border-radius: 25px; box-shadow: var(--shadow-soft); width: 100%; }
         .pad-card { background: #fdfdfd; border: 1px solid #f0f0f0; border-radius: 15px; padding: 12px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
         .pad-btn { width: 100%; aspect-ratio: 1; border-radius: 12px; border: none; background: #fafafa; color: var(--text-dark); font-size: 0.8rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.1s; position: relative; border: 2px solid transparent; }
@@ -182,7 +190,7 @@
         .bpm-slider-container input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--pad-color); cursor: pointer; }
 
         /* --- ESTILOS: JUEGOS DE CONCENTRACIÓN Y LÓGICA --- */
-        .games-layout { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 30px 5%; width: 100%; max-width: 1200px; margin: 0 auto; flex: 1; position: relative; z-index: 10;}
+        .games-layout { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 30px 5%; width: 100%; max-width: 1200px; margin: 0 auto; flex: 1; }
         
         .game-panel { background: #fff; padding: 30px; border-radius: 30px; border: 1px solid #f0f0f0; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-soft); }
         
@@ -214,7 +222,7 @@
             font-size: 0.95rem;
             font-weight: 600;
             pointer-events: none;
-            z-index: 1; 
+            z-index: 1; /* Se mantiene en la capa del fondo, DETRÁS del #main-wrapper */
             opacity: 0;
             transition: transform 8s linear, opacity 1s ease-in-out; 
         }
@@ -234,7 +242,8 @@
 </head>
 <body>
 
-    <div id="main-wrapper" style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- NOTA: #main-wrapper envuelve la app y está en z-index: 10, así que tapará a las notas que van en z-index: 1 -->
+    <div id="main-wrapper">
         
         <!-- MENÚ PRINCIPAL -->
         <div id="intro-screen" class="fade-in">
@@ -486,14 +495,12 @@
         const sparkleColors = ['#FFD700', '#FFEA00', '#FDDA0D', '#FFFACD', '#FFFFFF'];
         
         document.addEventListener('mousemove', function(e) {
-            // Elimina la restricción, ahora salen de 1 a 3 destellos por cada movimiento
             const sparklesToSpawn = Math.floor(Math.random() * 3) + 1; 
 
             for(let i=0; i<sparklesToSpawn; i++) {
                 const sparkle = document.createElement('div');
                 sparkle.className = 'sparkle-trail';
                 
-                // Menos estrellas de texto, más destellos redondos de luz
                 const isStar = Math.random() > 0.85;
                 sparkle.innerHTML = isStar ? '✨' : '';
                 
@@ -506,7 +513,6 @@
                 if (!isStar) {
                     sparkle.style.background = color;
                     sparkle.style.borderRadius = '50%';
-                    // Resplandor dorado
                     sparkle.style.boxShadow = `0 0 ${size * 2}px ${color}, 0 0 ${size * 4}px #FFD700`;
                     sparkle.style.filter = 'blur(0.5px)'; 
                 } else {
@@ -515,7 +521,6 @@
                     sparkle.style.textShadow = `0 0 5px ${color}, 0 0 10px #FFD700`;
                 }
                 
-                // Esparcir un poco alrededor del cursor
                 const offsetX = (Math.random() - 0.5) * 20;
                 const offsetY = (Math.random() - 0.5) * 20;
 
@@ -524,7 +529,6 @@
                 
                 document.body.appendChild(sparkle);
                 
-                // Animación de caída lenta y suave
                 const angle = Math.random() * Math.PI * 2;
                 const velocity = Math.random() * 15 + 5;
                 const tx = Math.cos(angle) * velocity;
@@ -631,14 +635,31 @@
             memo.className = 'floating-memo';
             memo.innerText = learningMemos[Math.floor(Math.random() * learningMemos.length)];
             
-            // Posición horizontal aleatoria (10% a 80% de la pantalla)
-            memo.style.left = Math.random() * 70 + 10 + 'vw';
+            // INTELIGENCIA ESPACIAL: Revisar si estamos en una actividad o en el inicio
+            const isActivityActive = !document.getElementById('main-app').classList.contains('hidden');
+            let randomLeft;
+
+            if (isActivityActive) {
+                // Si hay una actividad abierta, spawnear SOLO en los bordes laterales
+                // Mitad de las veces a la izquierda (2% a 15%), mitad a la derecha (85% a 98%)
+                if (Math.random() > 0.5) {
+                    randomLeft = Math.random() * 13 + 2; 
+                } else {
+                    randomLeft = Math.random() * 13 + 85; 
+                }
+            } else {
+                // Si estamos en el menú, spawnear en cualquier lado
+                randomLeft = Math.random() * 70 + 10;
+            }
+
+            memo.style.left = randomLeft + 'vw';
             
+            // Para asegurar que NUNCA tapen los menús desde la jerarquía HTML
             document.body.appendChild(memo);
 
             // Disparar animación
             requestAnimationFrame(() => {
-                memo.style.opacity = '0.7'; // Ligera transparencia
+                memo.style.opacity = '0.7'; 
                 memo.style.transform = `translateY(-120vh) rotate(${Math.random() * 30 - 15}deg)`;
             });
 
@@ -653,13 +674,11 @@
             }, 8000);
         }
 
-        // Lanza DOS notas a la vez
         function spawnTwoMemos() {
             spawnMemo();
-            setTimeout(spawnMemo, 800);
+            setTimeout(spawnMemo, 800); 
         }
 
-        // Dispara cada 3.5 segundos
         setTimeout(() => {
             spawnTwoMemos();
             setInterval(spawnTwoMemos, 3500);
